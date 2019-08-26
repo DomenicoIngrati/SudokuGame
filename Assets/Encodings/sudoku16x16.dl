@@ -1,0 +1,79 @@
+
+unit(0..15). symbol(1..16). sizeblock(4).
+
+%%%%%%%%%%%%%%%% Deterministic Encoding: definition of domain and auxiliary predicates %%%%%%%%%%%%%%%%
+
+%%%%%%%% Definition of block %%%%%%%%
+inblock(B,X,Y) :- unit(B),unit(X), unit(Y), div(X,N,R), div(Y,N,S), Y1 = S * N, B = R + Y1,sizeblock(N).
+sameblock(X1,Y1,X2,Y2) :- inblock(B,X1,Y1), inblock(B,X2,Y2),X1!=X2.
+sameblock(X1,Y1,X2,Y2) :- inblock(B,X1,Y1), inblock(B,X2,Y2),Y1!=Y2.
+div(X,Y,B) :- XminusDelta = Y*B, X = XminusDelta + Delta, Delta<Y,unit(X),unit(Y),unit(B),unit(XminusDelta),unit(Delta).
+
+
+%%%%%%%% Select cells without a value assigned %%%%%%%%
+cell(X,Y):-unit(X),unit(Y).
+assigned(X,Y):- value(X,Y,_).
+nogiven(X,Y):- not assigned(X,Y),cell(X,Y).
+
+
+%%%%%%%% Compute not candidates %%%%%%%%
+%Row Constraint
+notcandidate(X,Y,N):-value(X,Y1,N),Y!=Y1,nogiven(X,Y). 
+
+%Column Constraint 
+notcandidate(X,Y,N):-value(X1,Y,N),X!=X1,nogiven(X,Y).
+
+%Block Constraint 
+notcandidate(X,Y,N):-value(X1,Y1,N),sameblock(X,Y,X1,Y1),nogiven(X,Y). 
+
+%Uniqueness constraint
+notcandidate(X,Y,N1):-value(X,Y,N),symbol(N1),N1!=N. 
+
+
+%%%%%%%% Compute candidates %%%%%%%%
+candidate(X,Y,N):- not notcandidate(X,Y,N),symbol(N),cell(X,Y).
+
+
+%%%%%%%% Two different cell share a unit %%%%%%%%
+shareAunit(X,Y1,X,Y2):-cell(X,Y1),cell(X,Y2),Y1!=Y2.
+shareAunit(X1,Y,X2,Y):-cell(X1,Y),cell(X2,Y),X1!=X2.
+shareAunit(X1,Y1,X2,Y2):-sameblock(X1,Y1,X2,Y2).
+%%%%%%%% Hidden Single Rule %%%%%%%%
+
+
+rowCandidatesAreMoreThan2(X,Y,N):-candidate(X,Y1,N),Y1!=Y,unit(Y).
+
+newValue(X,Y,N):-candidate(X,Y,N),not rowCandidatesAreMoreThan2(X,Y,N),nogiven(X,Y).
+
+
+columnCandidatesAreMoreThan2(X,Y,N):-candidate(X1,Y,N),X1!=X,unit(X).
+
+newValue(X,Y,N):-candidate(X,Y,N),not columnCandidatesAreMoreThan2(X,Y,N),nogiven(X,Y).
+
+
+blockCandidatesAreMoreThan2(X,Y,N):-candidate(X1,Y1,N),sameblock(X,Y,X1,Y1).
+
+newValue(X,Y,N):-candidate(X,Y,N),not blockCandidatesAreMoreThan2(X,Y,N),nogiven(X,Y).
+
+
+%%%%%%%% Naked Single Rule %%%%%%%%
+
+candidatesAreMoreThan2(X,Y):-candidate(X,Y,N),candidate(X,Y,N1),N!=N1.
+newValue(X,Y,N):-candidate(X,Y,N),not candidatesAreMoreThan2(X,Y),nogiven(X,Y).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
