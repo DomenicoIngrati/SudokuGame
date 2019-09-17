@@ -23,13 +23,13 @@ public class Board16x16 : MonoBehaviour
     void Start()
     {
         
-        InitGrid(ref riddleGrid);
+        InitGrid();
         CreateButtons();
     }
 
 
 
-    void InitGrid(ref int[,] grid) //INIZIALIZZA LA MATRICE CON I NUMERI
+    void InitGrid() //INIZIALIZZA LA MATRICE CON I NUMERI
     {
         string[] lines = null;
 
@@ -55,12 +55,12 @@ public class Board16x16 : MonoBehaviour
                     }
 
 
-                grid[i, k++] = int.Parse(number);
+                riddleGrid[i, k++] = int.Parse(number);
                 
             }
         }
 
-        sudokuSolver = new SudokuSolver(grid,16);
+        sudokuSolver = new SudokuSolver(riddleGrid,16);
     }
 
 
@@ -211,39 +211,25 @@ public class Board16x16 : MonoBehaviour
 
     public void SolveGrid()
     {
-        //string s = "";
-
-        //for(int i = 0; i < 16; i++)
-        //{
-        //    for(int j = 0; j < 16; j++)
-        //    {
-        //        if (riddleGrid[i, j] != 0)
-        //        {
-        //            s += "value(" + i + "," + j + "," + riddleGrid[i, j] + ").";
-        //            s += "\n";
-        //        }
-        //    }
-        //}
-
-        //print(s);
-
-        int cont = 0;
-        solvedGrid = sudokuSolver.SolveMatrix();
+        riddleGrid = sudokuSolver.SolveMatrix();
+        bool sol = false;
         for (int k = 0; k < fieldList.Count; k++)
         {
-           if (solvedGrid[fieldList[k].getX(), fieldList[k].getY()] != 0)
+            if (riddleGrid[fieldList[k].getX(), fieldList[k].getY()] != 0)
             {
-                print("FOUND A SEMI-SOLUTION. PRESS SOLVE AGAIN");
-                fieldList[k].SetHint(solvedGrid[fieldList[k].getX(), fieldList[k].getY()]);
-                riddleGrid[fieldList[k].getX(), fieldList[k].getY()] = solvedGrid[fieldList[k].getX(), fieldList[k].getY()];
+                sol = true;
+                fieldList[k].SetHint(riddleGrid[fieldList[k].getX(), fieldList[k].getY()]);
                 fieldList.RemoveAt(k);
-                cont++;
             }
         }
 
-        if (cont == 0)
+        if (sol)
         {
-            print("NO SOLUTION");
+            print("Found Semi-Sol");
+        }
+        else
+        {
+            print("no more solution");
         }
     }
 

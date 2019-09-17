@@ -20,12 +20,13 @@ public class SudokuSolver
     private static Handler handler;
     private static int N;
     int[,] riddleGrid;
+    int[,] solvedGrid;
 
     List<Value> newValues = new List<Value>();
     
 
 
-    public SudokuSolver(int[,] grid,int n)
+    public SudokuSolver(int[,] grid1,  int n)
     {
         N = n;
 
@@ -39,11 +40,14 @@ public class SudokuSolver
         }
 
         riddleGrid = new int[N, N];
+        solvedGrid = new int[N, N];
+
         for (int i = 0; i < N; i++)
         {
             for(int j = 0; j < N; j++)
             {
-                riddleGrid[i, j] = grid[i, j];
+                riddleGrid[i, j] = grid1[i, j];
+                solvedGrid[i, j] = 0;
             }
         }
 
@@ -56,7 +60,9 @@ public class SudokuSolver
 
     public void SetPrograms()
     {
-        
+        InputProgram encoding = new ASPInputProgram();
+        encoding.AddFilesPath(encodingResource);
+        handler.AddProgram(encoding);
 
         // register the class for reflection
         try
@@ -72,12 +78,11 @@ public class SudokuSolver
 
     }
 
+
     public int[,] SolveMatrix()
     {
-        handler.RemoveAll();
-
         InputProgram facts = new ASPInputProgram();
-        InputProgram encoding= encoding = new ASPInputProgram();
+        
 
         for (int i = 0; i < N; i++)
         {
@@ -85,10 +90,11 @@ public class SudokuSolver
             for (int j = 0; j < N; j++)
             {
 
-                if (riddleGrid[i, j] != 0)
+                if (riddleGrid[i, j] != 0 && solvedGrid[i,j]!=1)
                 {
                     try
                     {
+                        solvedGrid[i, j] = 1;
                         facts.AddObjectInput(new Value(i, j, riddleGrid[i, j]));
                     }
                     catch (Exception e)
@@ -102,19 +108,13 @@ public class SudokuSolver
 
         }
 
-       
-
-        encoding.AddFilesPath(encodingResource);
-
         handler.AddProgram(facts);
-        handler.AddProgram(encoding);
 
         Output o = handler.StartSync();
 
         AnswerSets answers = (AnswerSets)o;
         foreach (AnswerSet a in answers.Answersets)
         {
-            int conta = 0;
             try
             {
                 foreach (object obj in a.Atoms)
@@ -123,12 +123,9 @@ public class SudokuSolver
                     {
                         continue;
                     }
-                    conta++;
 
-                    
                     NewValue newValue = (NewValue)obj;
                     riddleGrid[newValue.getRow(),newValue.getColumn()] = newValue.getValue();
-                    
                 }
 
                 //Console.ReadLine();
@@ -141,9 +138,8 @@ public class SudokuSolver
 
         }
 
-
-        
         return riddleGrid;
 
     }
+
 }
